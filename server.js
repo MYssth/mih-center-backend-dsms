@@ -34,7 +34,19 @@ router.route('/getsetting').get((request, response) => {
         console.error(err);
         response.setStatus(500);
     });
-    
+
+});
+
+router.route('/updatesetting').post((request, response) => {
+
+    let settingData = { ...request.body }
+    dboperations.updateSetting(settingData).then(result => {
+        response.status(200).json(result);
+    }).catch(err => {
+        console.error(err);
+        response.sendStatus(500);
+    });
+
 });
 
 router.route('/getevent').get((request, response) => {
@@ -45,18 +57,29 @@ router.route('/getevent').get((request, response) => {
         console.error(err);
         response.setStatus(500);
     });
-    
+
 });
 
-router.route('/getbookdata/:id/:month').get((request, response) => {
+router.route('/getmanagebookdata/:id').get((request, response) => {
 
-    dboperations.getBookData(request.params.id, request.params.month).then(result => {
+    dboperations.getManageBookData(request.params.id).then(result => {
         response.json(result);
     }).catch(err => {
         console.error(err);
         response.setStatus(500);
     });
-    
+
+});
+
+router.route('/getbookdata/:id/:month/:year').get((request, response) => {
+
+    dboperations.getBookData(request.params.id, request.params.month, request.params.year).then(result => {
+        response.json(result);
+    }).catch(err => {
+        console.error(err);
+        response.setStatus(500);
+    });
+
 });
 
 router.route('/addevent').post((request, response) => {
@@ -73,7 +96,7 @@ router.route('/addevent').post((request, response) => {
 
 router.route('/editevent').post((request, response) => {
 
-    let eventData = { ...request.body};
+    let eventData = { ...request.body };
 
     dboperations.editEvent(eventData).then(result => {
         response.status(200).json(result);
@@ -81,12 +104,12 @@ router.route('/editevent').post((request, response) => {
         console.error(err);
         response.sendStatus(500);
     });
-    
+
 });
 
-router.route('/deleteevent/:id/:personnel_id').delete((request, response) => {
+router.route('/deleteevent/:data_id/:personnel_id').delete((request, response) => {
 
-    dboperations.deleteEvent(request.params.id, request.params.personnel_id).then(result => {
+    dboperations.deleteEvent(request.params.data_id, request.params.personnel_id).then(result => {
         response.status(200).json(result);
     }).catch(err => {
         console.error(err);
@@ -98,6 +121,39 @@ router.route('/deleteevent/:id/:personnel_id').delete((request, response) => {
 router.route('/getshift').get((request, response) => {
 
     dboperations.getShift().then(result => {
+        response.status(200).json(result[0]);
+    }).catch(err => {
+        console.error(err);
+        response.sendStatus(500);
+    });
+
+});
+
+router.route('/getshiftbyid/:id').get((request, response) => {
+
+    dboperations.getShiftById(request.params.id).then(result => {
+        response.status(200).json(result[0]);
+    }).catch(err => {
+        console.error(err);
+        response.sendStatus(500);
+    });
+
+});
+
+router.route('/getoperator').get((request, response) => {
+
+    dboperations.getOperator().then(result => {
+        response.status(200).json(result[0]);
+    }).catch(err => {
+        console.error(err);
+        response.sendStatus(500);
+    });
+
+});
+
+router.route('/getpsneventlist/:id').get((request, response) => {
+
+    dboperations.getPSNEventList(request.params.id).then(result => {
         response.status(200).json(result[0]);
     }).catch(err => {
         console.error(err);

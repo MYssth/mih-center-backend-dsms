@@ -112,14 +112,17 @@ async function getSetting() {
     }
 }
 
-async function updateSetting(limit_date) {
-    try{
+async function updateSetting(settingData) {
+    try {
         console.log("updateSetting call try connect to server");
         let pool = await sql.connect(config);
         console.log("connect complete");
-        await pool.request().input("limit_date", sql.VarChar, limit_date).query("UPDATE ");
+        await pool.request().input("limit_date", sql.VarChar, settingData.limit_date).query("UPDATE dsms_setting SET limit_date = @limit_date");
+        console.log("updateSetting complete");
+        console.log("====================");
+        return { "status": "ok" };
     }
-    catch(error){
+    catch (error) {
         console.log(error);
         return { "status": "error", "message": error.message };
     }
@@ -145,18 +148,39 @@ async function getEvent() {
     }
 }
 
-async function getBookData(id, month) {
+async function getManageBookData(id) {
     try {
-        console.log("getBookData call try connect to server id = " + id + " month = " + month);
+        console.log("getManageBookData call try connect to server");
+        let pool = await sql.connect(config);
+        console.log("connect complete");
+        const data = await pool.request().input("id", sql.VarChar, id).query(
+            getEventQuery +
+            " LEFT JOIN dsms_attend_list ON dsms_attend_list.data_id = dsms_data.id" +
+            " WHERE dsms_attend_list.personnel_id = @id" +
+            " ORDER BY shift_id");
+
+        console.log("getManageBookData complete");
+        console.log("====================");
+        return data.recordsets[0];
+    }
+    catch (error) {
+        console.error(error);
+        return { "status": "error", "message": error.message };
+    }
+}
+
+async function getBookData(id, month, year) {
+    try {
+        console.log("getBookData call try connect to server id = " + id + " month = " + month + " year = " + year);
         let pool = await sql.connect(config);
         console.log("connect complete");
         const data = await pool.request().input("month", sql.VarChar, month)
+            .input("year", sql.VarChar, year)
             .input("id", sql.VarChar, id).query(
                 getEventQuery +
                 " LEFT JOIN dsms_attend_list ON dsms_attend_list.data_id = dsms_data.id" +
-                " WHERE dsms_data.month = @month AND dsms_attend_list.personnel_id = @id" +
+                " WHERE dsms_data.month >= @month AND dsms_data.year >= @year AND dsms_attend_list.personnel_id = @id" +
                 " ORDER BY shift_id");
-        // const result = await digestData(data.recordsets[0]);
 
         console.log("getBookData complete");
         console.log("====================");
@@ -243,23 +267,23 @@ async function editEvent(eventData) {
     }
 }
 
-async function deleteEvent(id, personnel_id) {
+async function deleteEvent(data_id, personnel_id) {
     try {
-        console.log("deleteEvent call try connect to server id = " + id);
+        console.log("deleteEvent call try connect to server id = " + data_id);
         let pool = await sql.connect(config);
         console.log("connect complete");
         await pool.request()
-            .input("id", sql.Int, id)
+            .input("data_id", sql.Int, data_id)
             .input("personnel_id", sql.VarChar, personnel_id)
-            .query("DELETE FROM dsms_attend_list WHERE id = @id AND personnel_id = @personnel_id");
+            .query("DELETE FROM dsms_attend_list WHERE data_id = @data_id AND personnel_id = @personnel_id");
         console.log("delete data in attend list complete");
         const result = await pool.request()
-            .input("id", sql.Int, id)
-            .query("SELECT * FROM dsms_attend_list WHERE id = @id");
+            .input("data_id", sql.Int, data_id)
+            .query("SELECT * FROM dsms_attend_list WHERE data_id = @data_id");
         if (result.recordset.length === 0) {
             console.log("no attend left in list, delete event data");
             await pool.request()
-                .input("id", sql.Int, id)
+                .input("id", sql.Int, data_id)
                 .query("DELETE FROM dsms_data WHERE id = @id");
         }
         console.log("deleteEvent complete");
@@ -288,12 +312,74 @@ async function getShift() {
     }
 }
 
+async function getShiftById(id) {
+    try {
+        console.log("getShiftById call try connect to server");
+        let pool = await sql.connect(config);
+        console.log("connect complete");
+        const result = await pool.request().input("id", sql.VarChar, id).query("SELECT * FROM dsms_shift WHERE id = @id");
+        console.log("getShiftById complete");
+        console.log("====================");
+        return result.recordset;
+    }
+    catch (error) {
+        console.error(error);
+        return { "status": "error", "message": error.message };
+    }
+}
+
+async function getOperator() {
+    try {
+        console.log("getOperator call try connect to server");
+        let pool = await sql.connect(config);
+        console.log("connect complete");
+        const result = await pool.request().query("SELECT personnel.personnel_id, personnel.personnel_firstname, personnel.personnel_lastname, personnel_level_list.level_id " +
+            "FROM personnel INNER JOIN personnel_level_list ON personnel_level_list.personnel_id = personnel.personnel_id " +
+            "WHERE personnel_level_list.level_id = 'DSMS_ADMIN' OR personnel_level_list.level_id = 'DSMS_USER'");
+        console.log("getOperator complete");
+        console.log("====================");
+        return result.recordsets;
+    }
+    catch (error) {
+        console.error(error);
+        return { "status": "error", "message": error.message };
+    }
+}
+
+async function getPSNEventList(data_id) {
+    try {
+        console.log("getPSNEventList call try connect to server");
+        let pool = await sql.connect(config);
+        console.log("connect complete");
+        const result = await pool.request().input('data_id', sql.VarChar, data_id)
+            .query("SELECT " +
+                " dsms_attend_list.personnel_id" +
+                " ,personnel.personnel_firstname" +
+                " ,personnel.personnel_lastname" +
+                " FROM dsms_attend_list" +
+                " INNER JOIN personnel ON personnel.personnel_id = dsms_attend_list.personnel_id" +
+                " WHERE dsms_attend_list.data_id = @data_id");
+        console.log("getPSNEventList complete");
+        console.log("====================");
+        return result.recordsets;
+    }
+    catch (error) {
+        console.error(error);
+        return { "status": "error", "message": error.message };
+    }
+}
+
 module.exports = {
     getSetting: getSetting,
+    updateSetting: updateSetting,
     getEvent: getEvent,
+    getManageBookData: getManageBookData,
     getBookData: getBookData,
     addEvent: addEvent,
     editEvent: editEvent,
     deleteEvent: deleteEvent,
     getShift: getShift,
+    getShiftById: getShiftById,
+    getOperator: getOperator,
+    getPSNEventList: getPSNEventList,
 }
