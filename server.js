@@ -60,6 +60,17 @@ router.route('/getevent').get((request, response) => {
 
 });
 
+router.route('/geteventbypsnid/:personnel_id').get((request, response) => {
+
+    dboperations.getEventByPSNId(request.params.personnel_id).then(result => {
+        response.json(result);
+    }).catch(err => {
+        console.error(err);
+        response.setStatus(500);
+    });
+
+});
+
 router.route('/getmanagebookdata/:id').get((request, response) => {
 
     dboperations.getManageBookData(request.params.id).then(result => {

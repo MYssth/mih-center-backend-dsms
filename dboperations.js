@@ -32,7 +32,7 @@ async function getNewEventId() {
 
 }
 
-async function digestData(data) {
+async function pushPersonnel(data) {
     let pool = await sql.connect(config);
     console.log("get personnel attend list");
     const result = await pool.request().query("SELECT" +
@@ -135,10 +135,32 @@ async function getEvent() {
         console.log("connect complete");
         const data = await pool.request().query(
             getEventQuery +
-            "Order BY shift_id");
-        const result = await digestData(data.recordsets[0]);
+            " Order BY shift_id");
+        const result = await pushPersonnel(data.recordsets[0]);
 
         console.log("getEvent complete");
+        console.log("====================");
+        return result;
+    }
+    catch (error) {
+        console.error(error);
+        return { "status": "error", "message": error.message };
+    }
+}
+
+async function getEventByPSNId(personnel_id) {
+    try {
+        console.log("getEventByPSNId call try connect to server");
+        let pool = await sql.connect(config);
+        console.log("connect complete");
+        const data = await pool.request().input('personnel_id', sql.VarChar, personnel_id).query(
+            getEventQuery +
+            " LEFT JOIN dsms_attend_list ON dsms_attend_list.data_id = dsms_data.id" +
+            " WHERE dsms_attend_list.personnel_id = @personnel_id" +
+            " Order BY shift_id");
+        const result = await pushPersonnel(data.recordsets[0]);
+
+        console.log("getEventByPSNId complete");
         console.log("====================");
         return result;
     }
@@ -373,6 +395,7 @@ module.exports = {
     getSetting: getSetting,
     updateSetting: updateSetting,
     getEvent: getEvent,
+    getEventByPSNId: getEventByPSNId,
     getManageBookData: getManageBookData,
     getBookData: getBookData,
     addEvent: addEvent,
