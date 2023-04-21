@@ -66,9 +66,10 @@ async function pushPersonnel(data) {
     const inFiveDays = new Date(new Date(now).setDate(now.getDate() + 5))
 
     for (let i = 0; i < data.length; i += 1) {
-        let tempToTime = data[i].to_time === "24" ? "23:59" : data[i].to_time + ":00";
+        let tempToTime = data[i].to_time === "24" || (data[i].from_time === "17" && data[i].to_time === "8" ) ? "23:59" : data[i].to_time + ":00";
         let tempStartDate = new Date(data[i].year + "-" + data[i].month + "-" + data[i].day);
-        let tempEndDate = data[i].is_overnight ? new Date(new Date(tempStartDate).setDate(tempStartDate.getDate() + 1)) : tempStartDate;
+        // let tempEndDate = data[i].is_overnight ? new Date(new Date(tempStartDate).setDate(tempStartDate.getDate() + 1)) : tempStartDate;
+        let tempEndDate = tempStartDate;
         itEndNow.push({
             id: data[i].id,
             shift_id: data[i].shift_id,
