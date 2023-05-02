@@ -62,25 +62,33 @@ async function pushPersonnel(data) {
     console.log("make data ready to use");
     let itEndNow = [];
 
-    const now = new Date()
-    const inFiveDays = new Date(new Date(now).setDate(now.getDate() + 5))
+    const weekday = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
     for (let i = 0; i < data.length; i += 1) {
-        let tempToTime = data[i].to_time === "24" || (data[i].from_time === "17" && data[i].to_time === "8" ) ? "23:59" : data[i].to_time + ":00";
+        let tempToTime = data[i].to_time === "24" || (data[i].from_time === "17" && data[i].to_time === "8") ? "23:59" : data[i].to_time + ":00";
+        let tempFromTime = data[i].from_time === "0" ? "00:00" : data[i].from_time + ":00";
         let tempStartDate = new Date(data[i].year + "-" + data[i].month + "-" + data[i].day);
-        // let tempEndDate = data[i].is_overnight ? new Date(new Date(tempStartDate).setDate(tempStartDate.getDate() + 1)) : tempStartDate;
         let tempEndDate = tempStartDate;
+
+
         itEndNow.push({
             id: data[i].id,
             shift_id: data[i].shift_id,
             title: data[i].psn_list,
-            start: new Date(tempStartDate.getFullYear() + "/" + (parseInt(tempStartDate.getMonth()) + 1) + "/" + tempStartDate.getDate() + " " + data[i].from_time + ":00").toString(),
-            end: new Date(tempEndDate.getFullYear() + "/" + (parseInt(tempEndDate.getMonth()) + 1) + "/" + tempEndDate.getDate() + " " + tempToTime).toString(),
+            start: `${weekday[tempStartDate.getDay()]} ${getMonthShortName(parseInt(tempStartDate.getMonth()) + 1)} ${tempStartDate.getDate()} ${tempStartDate.getFullYear()} ${tempFromTime}:00 GMT+0700 (Indochina Time)`,
+            end: `${weekday[tempEndDate.getDay()]} ${getMonthShortName(parseInt(tempEndDate.getMonth()) + 1)} ${tempEndDate.getDate()} ${tempEndDate.getFullYear()} ${tempToTime}:00 GMT+0700 (Indochina Time)`,
             hexColor: data[i].color,
         })
     }
 
     return itEndNow;
+}
+
+function getMonthShortName(monthNo) {
+    const date = new Date();
+    date.setMonth(monthNo - 1);
+
+    return date.toLocaleString('en-US', { month: 'short' });
 }
 
 const getEventQuery = "SELECT" +
@@ -217,7 +225,7 @@ async function getBookData(id, month, year) {
 
 async function addEvent(eventData) {
     try {
-        console.log("setEvent call try connect to server id = " + eventData.personnel_id);
+        console.log("addEvent call try connect to server id = " + eventData.personnel_id);
         let pool = await sql.connect(config);
         console.log("connect complete");
 
@@ -236,11 +244,11 @@ async function addEvent(eventData) {
                     .input("shift_id", sql.TinyInt, eventData.shift_id)
                     .query("INSERT INTO dsms_data (id, day, month, year, shift_id) VALUES (@id, @day, @month, @year, @shift_id)");
                 console.log("insert event data complete");
-                await pool.request()
-                    .input("data_id", sql.Int, data_id)
-                    .input("personnel_id", sql.VarChar, eventData.personnel_id)
-                    .query("INSERT INTO dsms_attend_list (data_id, personnel_id) VALUES (@data_id, @personnel_id)");
             }
+            await pool.request()
+                .input("data_id", sql.Int, data_id)
+                .input("personnel_id", sql.VarChar, eventData.personnel_id)
+                .query("INSERT INTO dsms_attend_list (data_id, personnel_id) VALUES (@data_id, @personnel_id)");
 
         }
         console.log("insert attend list complete");
