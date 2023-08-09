@@ -1,4 +1,8 @@
 {
+  "scripts": {
+    "prod": "NODE_ENV=production node .\\server.js",
+    "dev": "NODE_ENV=development nodemon .\\server.js"
+  },
   "dependencies": {
     "body-parser": "^1.20.2",
     "cors": "^2.8.5",

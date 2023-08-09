@@ -22,8 +22,13 @@ router.use((request, response, next) => {
     response.setHeader('Access-Control-Allow-Headers', 'Content-Type');
     response.setHeader('Access-Control-Allow-Credentials', true);
 
-    console.log('middleware');
+    // console.log('middleware');
     next();
+});
+
+router.route("/health").get((request, response) => {
+  // console.log("health check");
+  response.json({ status: 200 });
 });
 
 router.route('/getsetting').get((request, response) => {

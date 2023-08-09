@@ -1,14 +1,7 @@
-// var host = 'localhost';
-var host = '192.168.101.2';
-
-if (process.env.NODE_ENV === 'production') {
-    host = process.env.prodHost;
-}
-
 const config = {
     user: process.env.hostUser,
     password: process.env.hostPass,
-    server: host,
+    server: process.env.prodHost,
     database: process.env.hostDB,
     options: {
         encrypt: false,
@@ -16,7 +9,5 @@ const config = {
     },
     port: 1433
 }
-
-
 
 module.exports = config;
