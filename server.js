@@ -34,7 +34,7 @@ router.route("/health").get((request, response) => {
 router.route('/getsetting').get((request, response) => {
 
     dboperations.getSetting().then(result => {
-        response.json(result[0]);
+        response.json(result);
     }).catch(err => {
         console.error(err);
         response.setStatus(500);
@@ -65,9 +65,9 @@ router.route('/getevent').get((request, response) => {
 
 });
 
-router.route('/geteventbypsnid/:personnel_id').get((request, response) => {
+router.route('/geteventbypsnid/:psn_id').get((request, response) => {
 
-    dboperations.getEventByPSNId(request.params.personnel_id).then(result => {
+    dboperations.getEventByPSNId(request.params.psn_id).then(result => {
         response.json(result);
     }).catch(err => {
         console.error(err);
@@ -76,9 +76,9 @@ router.route('/geteventbypsnid/:personnel_id').get((request, response) => {
 
 });
 
-router.route('/getmanagebookdata/:id').get((request, response) => {
+router.route('/getmanagebookdata/:psn_id').get((request, response) => {
 
-    dboperations.getManageBookData(request.params.id).then(result => {
+    dboperations.getManageBookData(request.params.psn_id).then(result => {
         response.json(result);
     }).catch(err => {
         console.error(err);
@@ -87,9 +87,9 @@ router.route('/getmanagebookdata/:id').get((request, response) => {
 
 });
 
-router.route('/getbookdata/:id/:month/:year').get((request, response) => {
+router.route('/getbookdata/:psn_id/:month/:year').get((request, response) => {
 
-    dboperations.getBookData(request.params.id, request.params.month, request.params.year).then(result => {
+    dboperations.getBookData(request.params.psn_id, request.params.month, request.params.year).then(result => {
         response.json(result);
     }).catch(err => {
         console.error(err);
@@ -137,7 +137,7 @@ router.route('/deleteevent/:data_id/:personnel_id').delete((request, response) =
 router.route('/getshift').get((request, response) => {
 
     dboperations.getShift().then(result => {
-        response.status(200).json(result[0]);
+        response.status(200).json(result);
     }).catch(err => {
         console.error(err);
         response.sendStatus(500);
@@ -148,7 +148,7 @@ router.route('/getshift').get((request, response) => {
 router.route('/getshiftbyid/:id').get((request, response) => {
 
     dboperations.getShiftById(request.params.id).then(result => {
-        response.status(200).json(result[0]);
+        response.status(200).json(result);
     }).catch(err => {
         console.error(err);
         response.sendStatus(500);
@@ -159,7 +159,7 @@ router.route('/getshiftbyid/:id').get((request, response) => {
 router.route('/getoperator').get((request, response) => {
 
     dboperations.getOperator().then(result => {
-        response.status(200).json(result[0]);
+        response.status(200).json(result);
     }).catch(err => {
         console.error(err);
         response.sendStatus(500);
@@ -170,7 +170,7 @@ router.route('/getoperator').get((request, response) => {
 router.route('/getpsneventlist/:id').get((request, response) => {
 
     dboperations.getPSNEventList(request.params.id).then(result => {
-        response.status(200).json(result[0]);
+        response.status(200).json(result);
     }).catch(err => {
         console.error(err);
         response.sendStatus(500);
