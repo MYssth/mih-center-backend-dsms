@@ -42,12 +42,7 @@ async function pushPersonnel(data) {
   const himsPsn = await getHimspsn();
   let result = await pool
     .request()
-    .query(
-      "SELECT" +
-        " dsms_attend_list.data_id" +
-        " ,dsms_attend_list.psn_id" +
-        " FROM dsms_attend_list"
-    );
+    .query("SELECT data_id, psn_id FROM dsms_attend_list");
   result = result.recordsets[0];
   let psnList = [];
   for (let i = 0; i < result.length; i += 1) {
@@ -131,7 +126,7 @@ function getMonthShortName(monthNo) {
 
 async function getHimspsn() {
   return await fetch(
-    `http://${process.env.backendHost}:${process.env.himsPort}/api/himspsn/getallpsndata`
+    `http://${process.env.backendHost}:${process.env.himsPort}/api/himspsn/getallpsn`
   )
     .then((response) => response.json())
     .then((data) => {
@@ -505,18 +500,17 @@ async function getPSNEventList(data_id) {
       .input("data_id", sql.VarChar, data_id)
       .query(
         "SELECT " +
-          " dsms_attend_list.psn_id" +
+          " psn_id" +
           " FROM dsms_attend_list" +
-          " INNER JOIN psn ON psn.id = dsms_attend_list.psn_id" +
-          " WHERE dsms_attend_list.data_id = @data_id"
+          " WHERE data_id = @data_id"
       );
     result = result.recordsets[0];
     let tResult = [];
     for (let i = 0; i < result.length; i += 1) {
       for (let n = 0; n < himsPsn.length; n += 1) {
-        if (result[i].id === himsPsn[n].psn_id) {
+        if (result[i].psn_id === himsPsn[n].psn_id) {
           await tResult.push({
-            personnel_id: result[i].id,
+            personnel_id: result[i].psn_id,
             personnel_firstname: himsPsn[n].fname,
             personnel_lastname: himsPsn[n].lname,
           });
@@ -527,6 +521,15 @@ async function getPSNEventList(data_id) {
     console.log("getPSNEventList complete");
     console.log("====================");
     return tResult;
+  } catch (error) {
+    console.error(error);
+    return { status: "error", message: error.message };
+  }
+}
+
+async function getVersion() {
+  try {
+    return process.env.version;
   } catch (error) {
     console.error(error);
     return { status: "error", message: error.message };
@@ -547,4 +550,5 @@ module.exports = {
   getShiftById: getShiftById,
   getOperator: getOperator,
   getPSNEventList: getPSNEventList,
+  getVersion: getVersion,
 };
